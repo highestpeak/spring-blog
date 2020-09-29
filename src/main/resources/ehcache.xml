@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache>
+    <!-- 指定一个文件目录，当EhCache把数据写到硬盘上时，将把数据写到这个文件目录下 -->
+    <!--<diskStore path="logs/ehcache"/>-->
+
+    <!-- 设定缓存的默认数据过期策略 -->
+    <!--
+        defaultCache:默认的缓存配置信息,如果不加特殊说明,则所有对象按照此配置项处理
+        maxElementsInMemory:设置了缓存的上限,最多存储多少个记录对象
+        eternal:代表对象是否永不过期 (指定true则下面两项配置需为0无限期)
+        overflowToDisk:是否允许对象被写入到磁盘
+        timeToIdleSeconds:最大的发呆时间 /秒
+        timeToLiveSeconds:最大的存活时间 /秒
+        说明：下列配置自缓存建立起20秒(分钟)有效 。
+        在有效的20秒(分钟)内，如果连续秒(分钟)未访问缓存，则缓存失效。
+        就算有访问，也只会存活20秒。
+     -->
+    <defaultCache
+            maxElementsInMemory="10000"
+            eternal="false"
+            overflowToDisk="true"
+            timeToIdleSeconds="10"
+            timeToLiveSeconds="20"
+            diskPersistent="false"
+            diskExpiryThreadIntervalSeconds="120"/>
+
+    <!--
+        简单数值型，例如分页需要的列表大小的缓存
+    -->
+    <cache name="simpleValue:cache:1h"
+           maxElementsInMemory="100"
+           ternal="false"
+           overflowToDisk="false"
+           timeToLiveSeconds="3600"/>
+
+    <!--
+        文章分页前200篇可以存活时间长一点，因为可能经常被访问到
+    -->
+    <cache name="articleListIndexBefore200:cache:1h"
+           maxElementsInMemory="200"
+           ternal="false"
+           overflowToDisk="false"
+           timeToLiveSeconds="3600"/>
+
+    <!--
+        文章分页200篇之后的可以存活时间短一点
+    -->
+    <cache name="articleListIndexAfter200:cache:10min"
+           maxElementsInMemory="50"
+           ternal="false"
+           overflowToDisk="false"
+           timeToLiveSeconds="600"/>
+
+
+</ehcache>
