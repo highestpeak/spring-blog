@@ -35,4 +35,10 @@ public class ArticleBO {
      */
     private Integer stars;
 
+    /**
+     * 评论数
+     * todo: 由于oauth暂未实现，暂时没有设置该字段
+     */
+    private Integer comments;
+
 }

@@ -1,11 +1,11 @@
 package com.highestpeak.springblog.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.highestpeak.springblog.constant.DefaultValueFactory;
+import com.highestpeak.springblog.constant.SqlTableConstant;
 import com.highestpeak.springblog.constant.enumerate.ArticlesSortEnum;
 import com.highestpeak.springblog.constant.enumerate.ModifyTypeEnum;
 import com.highestpeak.springblog.mapper.ArticleMapper;
@@ -16,7 +16,7 @@ import com.highestpeak.springblog.model.entity.ArticleLocation;
 import com.highestpeak.springblog.model.entity.ArticleTag;
 import com.highestpeak.springblog.model.entity.Tag;
 import com.highestpeak.springblog.model.vo.ArticleListVO;
-import com.highestpeak.springblog.util.BinarySearchs;
+import com.highestpeak.springblog.util.BinarySearches;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -66,11 +66,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     /**
-     * 默认请求分页返回的额外信息的Map大小
-     */
-    private static final int DEFAULT_ARTICLE_EXTRA_INFO_MAP_SIZE = 16;
-
-    /**
      * 当start为0,即第一页时，传回size
      *
      * @param start 分页起始
@@ -79,7 +74,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
      */
     private Map<String, Object> listStartProcess(int start, Map<String, Object> extra) {
         if (extra == null) {
-            extra = new HashMap<>(DEFAULT_ARTICLE_EXTRA_INFO_MAP_SIZE);
+            extra = new HashMap<>(DefaultValueFactory.DEFAULT_ARTICLE_EXTRA_INFO_MAP_SIZE);
         }
         if (start == 0) {
             extra.put("size", self.articleListSize());
@@ -100,7 +95,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         ArticleListVO result = new ArticleListVO();
 
         // 额外结构信息: 初始页返回size
-        Map<String, Object> extra = new HashMap<>(DEFAULT_ARTICLE_EXTRA_INFO_MAP_SIZE);
+        Map<String, Object> extra = new HashMap<>(DefaultValueFactory.DEFAULT_ARTICLE_EXTRA_INFO_MAP_SIZE);
         extra = listStartProcess(start, extra);
         result.setExtra(extra);
 
@@ -108,16 +103,57 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         // 每篇文章记录所持Tag的id、Tag列表为出现的Tag的详细的信息
         List<ArticleBO> articleBOList = new ArrayList<>();
         List<Tag> tagList = new ArrayList<>();
+        ArticlesSortEnum tmp = ArticlesSortEnum.WRITE_TIME;
+        if (self.sortByTableColName.containsKey(sortBy)) {
+            tmp = sortBy;
+        }
         // 以最小页大小为单位，循环读取数据，最终拼接到一起
         do {
-            articleBOList.addAll(articleUnitList(start, sortBy, asc, tagList));
+            articleBOList.addAll(articleUnitList(start, tmp, asc, tagList));
             start += DefaultValueFactory.PAGE_UNIT_LENGTH;
         } while ((len -= DefaultValueFactory.PAGE_UNIT_LENGTH) >= 0);
+        if (self.sortByCalValue.containsKey(sortBy)) {
+            sortByCalValue.get(sortBy).sort(articleBOList);
+        }
         result.setArticleList(articleBOList);
         extra.put("tags", tagList);
 
         return result;
     }
+
+    /**
+     * 直接就能在数据库排序
+     */
+    public Map<ArticlesSortEnum, String> sortByTableColName = new HashMap<ArticlesSortEnum, String>() {{
+        put(ArticlesSortEnum.WRITE_TIME, SqlTableConstant.ArticleColName.WRITE_TIME);
+        put(ArticlesSortEnum.UPDATE_TIME, SqlTableConstant.ArticleColName.UPDATE_TIME);
+    }};
+
+    /**
+     * 对文章排序
+     */
+    private interface CalculateAndSortArticle {
+        /**
+         * 对文章排序
+         *
+         * @param articleList 待排序列表
+         */
+        void sort(List<ArticleBO> articleList);
+    }
+
+    /**
+     * 必须经过计算才能排序
+     */
+    private Map<ArticlesSortEnum, CalculateAndSortArticle> sortByCalValue =
+            new HashMap<ArticlesSortEnum, CalculateAndSortArticle>() {{
+                // todo: 通过 star、read count、comment count 对文章排序
+                put(ArticlesSortEnum.STAR, (articleList) -> {
+                });
+                put(ArticlesSortEnum.READ_COUNT, (articleList) -> {
+                });
+                put(ArticlesSortEnum.COMMENT_COUNT, (articleList) -> {
+                });
+            }};
 
     /**
      * 请求按照 PAGE_UNIT_LENGTH 的单位长度的页面
@@ -145,7 +181,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         // 找到分页文章列表 articles
         // 获得 idList 方便后续一次性查找 Tag 和 Location
         QueryWrapper<Article> articleQueryWrapper = new QueryWrapper<>();
-        articleQueryWrapper.orderBy(true, asc, Article.sortByToColName.get(sortBy));
+        articleQueryWrapper.orderBy(true, asc, self.sortByTableColName.get(sortBy));
         Page<Article> page = new Page<>(start, DefaultValueFactory.PAGE_UNIT_LENGTH, false);
         List<Article> articles = self.baseMapper.selectPage(page, articleQueryWrapper).getRecords();
         List<Integer> idList = articles.stream().map(Article::getId).collect(Collectors.toList());
@@ -168,14 +204,14 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         List<ArticleBO> articleList = articles.stream().map(article -> {
             searchTempleLocation.setArticle(article.getId());
             List<ArticleLocation> currLocations =
-                    BinarySearchs.binarySearchDuplicate(
+                    BinarySearches.binarySearchDuplicate(
                             articlesLocations, searchTempleLocation, locationSearchComparator
                     );
 
             // 查找tag信息，只保存id，减少数据量
             searchTempleTag.setArticle(article.getId());
             List<ArticleTag> currTags =
-                    BinarySearchs.binarySearchDuplicate(
+                    BinarySearches.binarySearchDuplicate(
                             articlesTags, searchTempleTag, tagSearchComparator
                     );
             List<Integer> tagIdList = currTags.stream().map(ArticleTag::getTag).collect(Collectors.toList());
@@ -188,28 +224,14 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
                     .stars(userService.countStars(article))
                     .build();
         }).collect(Collectors.toList());
-        // 记录下所有tag
-        tagList.addAll(tagService.selectTagList(new ArrayList<>(tagIdSet)));
+
+        // 减少一次数据库查询
+        if (!tagIdSet.isEmpty()) {
+            // 记录下所有tag
+            tagList.addAll(tagService.selectTagList(new ArrayList<>(tagIdSet)));
+        }
 
         return articleList;
-    }
-
-    @Cacheable("tagList")
-    public ArticleListVO articleUnitList(List<Integer> articleIdList, int start, int len) {
-        Page<Article> page = new Page<>(start, len, false);
-        QueryWrapper<Article> articleQueryWrapper = new QueryWrapper<>();
-        articleQueryWrapper.orderBy(true, true);
-        IPage<Article> articlePage = self.baseMapper.selectPage(page, articleQueryWrapper);
-        List<Article> articles = articlePage.getRecords();
-        ArticleBO.ArticleBOBuilder articleBuilder = ArticleBO.builder();
-        List<ArticleBO> articleList = articles.stream().map(article ->
-                articleBuilder.article(article)
-                        .articleLocations(articleLocationService.articlesLocationList(article.getId()))
-                        .stars(userService.countStars(article)).build()
-        ).collect(Collectors.toList());
-        ArticleListVO result = new ArticleListVO();
-        result.setArticleList(articleList);
-        return result;
     }
 
     /* ---------------- article modify group -------------- */
@@ -280,9 +302,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         errorMsgBuilder.put(ModifyTypeEnum.MODIFY, new ArrayList<>());
     }
 
-    /**
-     * todo: 应该对自调用的方法都加上self
-     */
     private void clearErrorMsgBuilder() {
         errorMsgBuilder.values().forEach(List::clear);
     }

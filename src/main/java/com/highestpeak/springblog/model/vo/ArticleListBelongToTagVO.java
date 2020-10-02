@@ -1,7 +1,6 @@
 package com.highestpeak.springblog.model.vo;
 
-import com.highestpeak.springblog.model.bo.ArticleBO;
-import lombok.Builder;
+import com.highestpeak.springblog.model.entity.Article;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,11 +9,11 @@ import java.util.Map;
 
 /**
  * @author highestpeak
- * 首页文章列表 VO 类
+ * 标签所含文章列表的 VO 类
  */
 @Getter
 @Setter
-public class ArticleListVO {
-    private List<ArticleBO> articleList;
+public class ArticleListBelongToTagVO {
+    private List<Article> articleList;
     private Map<String,Object> extra;
 }

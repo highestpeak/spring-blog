@@ -61,9 +61,14 @@ public class ArticleTagServiceImpl extends ServiceImpl<ArticleTagMapper, Article
         articleOfTagQueryWrapper.select(SqlTableConstant.ArticleTagColName.ARTICLE);
     }
 
-    public List<ArticleTag> tagArticleList(int tag){
-        articleOfTagQueryWrapper.eq(SqlTableConstant.ArticleTagColName.TAG,tag);
-        return self.getBaseMapper().selectList(articleOfTagQueryWrapper);
+    /**
+     * 计算某个 tag 所包含的文章数目
+     * @param tagId tag id
+     * @return 文章数目
+     */
+    public int countArticleBelongToTag(int tagId){
+        articleOfTagQueryWrapper.eq(SqlTableConstant.ArticleTagColName.TAG,tagId);
+        return self.count(articleOfTagQueryWrapper);
     }
 
     private ArticleTag.ArticleTagBuilder articleTagBuilder;

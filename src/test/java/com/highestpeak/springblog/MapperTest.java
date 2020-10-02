@@ -1,8 +1,6 @@
 package com.highestpeak.springblog;
 
-import com.highestpeak.springblog.constant.enumerate.ModifyTypeEnum;
 import com.highestpeak.springblog.model.bo.ArticleBO;
-import com.highestpeak.springblog.model.dto.ArticleModifyDTO;
 import com.highestpeak.springblog.model.entity.*;
 import com.highestpeak.springblog.service.*;
 import org.junit.jupiter.api.Assertions;
@@ -14,7 +12,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -132,7 +129,7 @@ class MapperTest {
         };
         List<Tag> tags = new ArrayList<>();
         Stream.of(tagTestList).forEach(tag-> tags.add(
-                tagBuilder.name((String) tag[0]).description((String) tag[1]).weight((Integer) tag[2]).createTime(now).build()
+                tagBuilder.name((String) tag[0]).description((String) tag[1]).topLevel((Integer) tag[2]).createTime(now).build()
         ));
         tagService.saveBatch(tags);
         List<Tag> tagList = tagService.getBaseMapper().selectList(null);

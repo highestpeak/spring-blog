@@ -1,13 +1,11 @@
 package com.highestpeak.springblog.util;
 
-import com.highestpeak.springblog.model.entity.ArticleLocation;
-
 import java.util.*;
 
 /**
  * @author highestpeak
  */
-public class BinarySearchs {
+public class BinarySearches {
 
     private static final int BINARYSEARCH_THRESHOLD = 5000;
 

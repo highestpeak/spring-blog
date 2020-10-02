@@ -51,5 +51,13 @@
            overflowToDisk="false"
            timeToLiveSeconds="600"/>
 
+    <!--
+            简单的键值对映射，例如Tag的name和Tag的映射
+        -->
+    <cache name="simpleMap:cache:10min"
+           maxElementsInMemory="50"
+           ternal="false"
+           overflowToDisk="false"
+           timeToLiveSeconds="600"/>
 
 </ehcache>

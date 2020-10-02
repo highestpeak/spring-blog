@@ -3,6 +3,7 @@ package com.highestpeak.springblog.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.highestpeak.springblog.constant.SqlTableConstant;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,7 +24,10 @@ public class Tag {
 
     private String description;
 
-    private int weight;
+    private int article;
+
+    @TableField(value = SqlTableConstant.TagColName.TOP_LEVEL)
+    private int topLevel;
 
     private LocalDateTime createTime;
 }

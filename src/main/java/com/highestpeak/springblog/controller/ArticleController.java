@@ -22,10 +22,6 @@ import java.util.Map;
 @RequestMapping("/api/v1/article")
 public class ArticleController {
 
-    /*
-    todo: 如果校验可以放在controller就不要放在service，因为这样多了一层函数调用开销？
-     */
-
     private final ArticleServiceImpl articleService;
 
     @Autowired
@@ -35,6 +31,7 @@ public class ArticleController {
 
     /**
      * 首页返回文章列表，每一项包括了文章的简要信息，文章内容地址等
+     * <p>
      * 只根据一列排序
      * start 和 len 是 PAGE_UNIT_LENGTH 的倍数
      * len 应该是某个倍数，然后service的查找只会循环最小粒度的page
@@ -64,7 +61,7 @@ public class ArticleController {
     }
 
     /**
-     * todo: spring security
+     * 更新文章，多站点协同在本地处理
      *
      * @param role      修改人角色
      * @param modifyMap 每一项为修改后文章内容
@@ -83,6 +80,9 @@ public class ArticleController {
                 .body("{\"code\": 401, \"msg\": \"未授权!\"}");
     }
 
+    /**
+     * todo: 多站点协同相关，暂时不写
+     */
     @PostMapping("/star")
     public Object starArticle(
             @RequestParam("article") int article,

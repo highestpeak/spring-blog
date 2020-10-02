@@ -9,6 +9,8 @@ public class SqlTableConstant {
 
     public static class ArticleColName {
         public static final String ID = "id";
+        public static final String WRITE_TIME = "create_time";
+        public static final String UPDATE_TIME = "update_time";
     }
 
     public static class ArticleTagColName {
@@ -31,6 +33,18 @@ public class SqlTableConstant {
 
     public static class TagColName {
         public static final String NAME = "name";
+        public static final String TOP_LEVEL = "top_level";
+        public static final String ID = "id";
     }
 
+    public static class TagPathColName{
+        public static final String ANCESTOR = "ancestor";
+        public static final String DESCENDANT = "descendant";
+    }
+
+    public static class TableName {
+        public static final String ARTICLE_LOCATION = "article_location";
+        public static final String ARTICLE_TAG = "article_tag";
+        public static final String TAG_PATH = "tag_path";
+    }
 }
